@@ -399,7 +399,7 @@ export default function AnalysePaper({ addToast }) {
         <button onClick={generatePDF} className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">
           <Download className="w-4 h-4" /> Download Report
         </button>
-        <button onClick={() => navigate(`/journals?search=${paper.domain || ''}`)} className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">
+        <button onClick={() => navigate(`/journals?search=${encodeURIComponent(paper.title || '')}`)} className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">
           <Search className="w-4 h-4" /> Find Matching Journals
         </button>
         <button onClick={() => navigate(`/cover-letter?paperId=${id}`)} className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">

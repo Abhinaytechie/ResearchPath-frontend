@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { Search, Heart, Globe, Database } from 'lucide-react';
 import { JournalPopover } from '../components/floating/JournalPopover';
@@ -64,15 +65,22 @@ function JournalCard({ journal, index, showSave, savedIds, toggleSave }) {
 }
 
 export default function JournalFinder({ addToast }) {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+
   const [journals, setJournals] = useState([]);
   const [searchBundle, setSearchBundle] = useState(null);
   const [savedIds, setSavedIds] = useState(new Set());
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (initialSearch) {
+      handleSearchDirect(initialSearch);
+    } else {
+      fetchData();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
@@ -92,15 +100,17 @@ export default function JournalFinder({ addToast }) {
     }
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    const q = search.trim();
+  const handleSearchDirect = async (q) => {
     if (!q) {
       await fetchData();
       return;
     }
     setLoading(true);
     try {
+      // Need saved journals state up to date if we are jumping straight to search
+      const sRes = await api.get('/journals/saved');
+      setSavedIds(new Set(sRes.data.map(s => s.journal_id)));
+
       const res = await api.get('/journals/search', { params: { search: q } });
       setSearchBundle({
         rag: res.data.rag || [],
@@ -113,6 +123,11 @@ export default function JournalFinder({ addToast }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    await handleSearchDirect(search.trim());
   };
 
   const toggleSave = async (id, e) => {
